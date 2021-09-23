@@ -1,2 +1,2 @@
 inventory_index: "{{ groups['all'].index(inventory_hostname) }}"
-element: "{{ lookup('file', '/etc/elements').split('\n')[inventory_index | int] }}"
+scheme_name: "{{ lookup('file', '/etc/names').split('\n')[inventory_index | int] }}"

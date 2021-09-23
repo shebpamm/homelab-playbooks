@@ -7,7 +7,7 @@
   - name: set hostname
     become: yes
     hostname:
-      name: "{{ element }}"
+      name: "{{ scheme_name }}"
 
 - name: Update /etc/hosts files
   hosts: all
