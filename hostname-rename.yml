@@ -1,9 +1,13 @@
 - name: Rename All Hostnames
   hosts: all
+  gather_facts: yes
   roles:
     - common
 
   tasks:
+  - name: register original hostnames
+    set_fact:
+      previous_hostname: "{{ ansible_hostname }}"
   - name: set hostname
     become: yes
     hostname:
@@ -15,8 +19,40 @@
     - common
 
   tasks:
-  - name: template hostname
+  - name: template hostnames
     become: yes
     template:
       src: hosts.j2
       dest: /etc/hosts 
+
+- name: Rename VMs
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - virtual
+
+  vars:
+    - new_name: "{{ scheme_name }}"
+  
+  tasks:
+  - name: Get VM UUIDs
+    vmware_guest_info:
+      hostname: "{{ vsphere_hostname }}"
+      username: "{{ vsphere_username }}"
+      password: "{{ vsphere_password }}"
+      datacenter: "ha-datacenter"
+      validate_certs: False
+      name: "{{ previous_hostname }}"
+    register: vm_facts
+
+  - name: Rename VMs 
+    vmware_guest:
+      hostname: "{{ vsphere_hostname }}"
+      username: "{{ vsphere_username }}"
+      password: "{{ vsphere_password }}"
+      validate_certs: False
+      uuid: "{{ vm_facts.instance.hw_product_uuid }}"
+      name: "{{ new_name }}"
+
+
