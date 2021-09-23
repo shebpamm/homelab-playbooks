@@ -3,5 +3,7 @@
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
 {% for item in play_hosts %}
-{{ hostvars[item]['ansible_hostname'] }}  {{ item }} 
+{% if hostvars[item]['ansible_hostname'] is defined %}
+{{ item }}    {{ hostvars[item]['ansible_hostname'] }}
+{% endif %}
 {% endfor %}
