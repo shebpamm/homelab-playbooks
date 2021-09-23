@@ -2,10 +2,11 @@
   become: no
   connection: local
   gather_facts: no
+  roles:
+    - virtual
 
   tasks:
-
   - name: create kickstart file
     template:
-      src: /kicks/base.cfg.j2
+      src: kickstart.cfg.j2
       dest: "{{ playbook_dir }}/ks/build/{{ inventory_hostname }}.cfg"

@@ -2,13 +2,9 @@
 - hosts: all
   connection: local
   become: no
-
-  vars:
-    vsphere_hostname: "{{ lookup('env', 'VSPHERE_HOSTNAME') }}"
-    vsphere_username: "{{ lookup('env', 'VSPHERE_USERNAME') }}"
-    vsphere_password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
-    vsphere_datastore: "Main Storage"
-
+  gather_facts: no
+  roles:
+    - virtual
   tasks:
 
   - name: build configuration ISO
@@ -23,7 +19,7 @@
       username: "{{ vsphere_username }}"
       password: "{{ vsphere_password }}"
       datastore: "{{ vsphere_datastore }}"
-      src: build/{{ inventory_hostname }}.iso
+      src: ks/build/{{ inventory_hostname }}.iso
       path: ISOs/kickstarts/{{ inventory_hostname }}.iso
       validate_certs: false
       
@@ -34,7 +30,7 @@
       password: "{{ vsphere_password }}"
       validate_certs: no
       folder: ""
-      name: "{{ server_name }}"
+      name: "{{ element }}"
       guest_id: rhel8_64Guest
       state: poweredon
       disk:

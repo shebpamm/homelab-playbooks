@@ -1,0 +1,4 @@
+vsphere_hostname: "{{ lookup('env', 'VSPHERE_HOSTNAME') }}"
+vsphere_username: "{{ lookup('env', 'VSPHERE_USERNAME') }}"
+vsphere_password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
+vsphere_datastore: "Main Storage"

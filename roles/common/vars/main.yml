@@ -1,0 +1,2 @@
+inventory_index: "{{ groups['all'].index(inventory_hostname) }}"
+element: "{{ lookup('file', '/etc/elements').split('\n')[inventory_index | int] }}"
