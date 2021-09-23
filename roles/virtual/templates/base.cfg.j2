@@ -1,0 +1,30 @@
+lang en_US
+keyboard us
+timezone Europe/Helsinki --isUtc
+rootpw $2b$10$afMvL1NXr0N3Bx6t4/7/0uLTYV93krzph0NYKZimaTgjXkNu2JwBa --iscrypted
+#platform x86, AMD64, or Intel EM64T
+reboot
+text
+cdrom
+bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
+zerombr
+clearpart --all --initlabel
+autopart
+authselect --passalgo=sha512 --useshadow
+selinux --enforcing
+firewall --disabled --ssh
+skipx
+firstboot --disable
+user --name=shebpamm --groups=wheel --iscrypted --password=$6$JU7cuzIKzRI.qEPE$yYc1TZU8HY5fHBpawK42T3yTT/Y0sxDC4Bdnd2jCZl2j1pAT1/IXuf0Jc8MV9IQXeNvaT8EFUzBCKkIYtOuXQ0 
+network --bootproto=static --ip={{ inventory_hostname }} --netmask=255.255.255.0 --gateway=192.168.1.1 --nameserver=8.8.8.8,8.8.4.4 --hostname={{ server_name }}
+%packages
+@^minimal-environment
+kexec-tools
+python39
+git
+vim
+%end
+%post
+pip3 install ssh-import-id
+ssh-import-id -o /home/shebpamm/.ssh/authorized_keys gh:shebpamm
+%end

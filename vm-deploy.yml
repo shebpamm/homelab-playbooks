@@ -1,0 +1,68 @@
+
+- hosts: all
+  connection: local
+  become: no
+
+  vars:
+    vsphere_hostname: "{{ lookup('env', 'VSPHERE_HOSTNAME') }}"
+    vsphere_username: "{{ lookup('env', 'VSPHERE_USERNAME') }}"
+    vsphere_password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
+    vsphere_datastore: "Main Storage"
+
+  tasks:
+
+  - name: build configuration ISO
+    make:
+      target: build/{{ inventory_hostname }}.iso
+      chdir: "{{ playbook_dir }}/ks"
+
+  - name: upload ISO
+
+    vsphere_copy:
+      hostname: "{{ vsphere_hostname }}"
+      username: "{{ vsphere_username }}"
+      password: "{{ vsphere_password }}"
+      datastore: "{{ vsphere_datastore }}"
+      src: build/{{ inventory_hostname }}.iso
+      path: ISOs/kickstarts/{{ inventory_hostname }}.iso
+      validate_certs: false
+      
+  - name: create vm
+    vmware_guest:
+      hostname: "{{ vsphere_hostname }}"
+      username: "{{ vsphere_username }}"
+      password: "{{ vsphere_password }}"
+      validate_certs: no
+      folder: ""
+      name: "{{ server_name }}"
+      guest_id: rhel8_64Guest
+      state: poweredon
+      disk:
+      - size_gb: 16
+        type: thin
+        datastore: "{{ vsphere_datastore }}"
+      networks:
+        - name: VM Network
+          ip: "{{ inventory_hostname }}"
+          netmask: 255.255.255.0
+          device_type: vmxnet3
+      wait_for_ip_address: yes
+      hardware:
+        memory_mb: 1024
+        num_cpus: 2
+        scsi: paravirtual
+      cdrom:
+        - type: "iso"
+          iso_path: "[{{ vsphere_datastore }}] ISOs/rhel-8.4-x86_64-dvd.iso"
+          controller_number: 0          
+          unit_number: 0
+
+        - type: "iso"
+          iso_path: "[{{ vsphere_datastore }}] ISOs/kickstarts/{{ inventory_hostname }}.iso"
+          controller_number: 0
+          unit_number: 1
+    register: deploy
+    delegate_to: localhost
+    when: not ansible_check_mode
+    async: 1000
+    poll: 0

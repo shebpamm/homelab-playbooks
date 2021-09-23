@@ -1,0 +1,33 @@
+- name: Find folder path of an existing virtual machine
+  hosts: localhost
+  gather_facts: False
+  vars:
+    vsphere_hostname: "{{ lookup('env', 'VSPHERE_HOSTNAME') }}"
+    vsphere_username: "{{ lookup('env', 'VSPHERE_USERNAME') }}"
+    vsphere_password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
+    vsphere_datastore: "Main Storage"
+    ansible_python_interpreter: "/usr/bin/env python3"
+  tasks:
+    - set_fact:
+        vm_name: "RHEL Testing"
+
+    - name: "Find folder for VM - {{ vm_name }}"
+      vmware_guest_find:
+        hostname: "{{ vsphere_hostname }}"
+        username: "{{ vsphere_username }}"
+        password: "{{ vsphere_password }}"
+        validate_certs: False
+        name: "{{ vm_name }}"
+      delegate_to: localhost
+      register: vm_facts
+
+    - name: Gather all registered virtual machines
+      vmware_vm_facts:
+        hostname: "{{ vsphere_hostname }}"
+        username: "{{ vsphere_username }}"
+        password: "{{ vsphere_password }}"
+        validate_certs: no
+      delegate_to: localhost
+      register: vmfacts
+
+    - debug: var=vmfacts

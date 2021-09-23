@@ -1,0 +1,15 @@
+- name: Rename All Hostnames
+  hosts: all
+
+  vars:
+    inventory_index: "{{ groups['all'].index(inventory_hostname) }}"
+    element: "{{ lookup('file', '/etc/elements').split('\n')[inventory_index | int] }}"
+
+  tasks:
+  - name: Print Element
+    debug:
+      msg: "{{ element }}"
+  - name: Set hostname
+    hostname:
+      name: "{{ element }}"
+  - name: 
