@@ -16,7 +16,7 @@ firewall --disabled --ssh
 skipx
 firstboot --disable
 user --name=shebpamm --groups=wheel --iscrypted --password=$6$JU7cuzIKzRI.qEPE$yYc1TZU8HY5fHBpawK42T3yTT/Y0sxDC4Bdnd2jCZl2j1pAT1/IXuf0Jc8MV9IQXeNvaT8EFUzBCKkIYtOuXQ0 
-network --bootproto=static --ip={{ inventory_hostname }} --netmask=255.255.255.0 --gateway=192.168.1.1 --nameserver=8.8.8.8,8.8.4.4 --hostname={{ scheme_name }}
+network --bootproto=dhcp --hostname={{ scheme_name }}
 %packages
 @^minimal-environment
 kexec-tools
