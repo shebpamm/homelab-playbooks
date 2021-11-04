@@ -1,0 +1,12 @@
+- name: Create Ansible User
+  hosts: virtual
+  gather_facts: yes
+  roles:
+    - common
+  
+  tasks:
+  - name: Add user 'Ansible'
+    become: yes
+    user:
+      name: ansible
+      comment: Ansible Management User
