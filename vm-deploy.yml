@@ -1,16 +1,36 @@
 
-- hosts: all
-  connection: local
+- hosts: virtual
   become: no
   gather_facts: no
   roles:
     - virtual
   tasks:
 
+  - name: Get VM info
+    vmware_guest_info:
+      hostname: "{{ vsphere_hostname }}"
+      username: "{{ vsphere_username }}"
+      password: "{{ vsphere_password }}"
+      datacenter: "ha-datacenter"
+      validate_certs: False
+      name: "{{ scheme_name }}"
+    delegate_to: localhost
+    register: vm_facts
+    ignore_errors: yes
+
+  - name: Check if VM exists
+    assert:
+      that:
+        - vm_facts['failed']
+      success_msg: VM does not exist yet.
+      fail_msg: VM exists, aborting.
+    delegate_to: localhost
+
   - name: build configuration ISO
     make:
       target: build/{{ inventory_hostname }}.iso
       chdir: "{{ playbook_dir }}/ks"
+    delegate_to: localhost
 
   - name: upload ISO
 
@@ -22,6 +42,7 @@
       src: ks/build/{{ inventory_hostname }}.iso
       path: ISOs/kickstarts/{{ inventory_hostname }}.iso
       validate_certs: false
+    delegate_to: localhost
       
   - name: create vm
     vmware_guest:
@@ -38,7 +59,7 @@
         type: thin
         datastore: "{{ vsphere_datastore }}"
       networks:
-        - name: VM Network
+        - name: Virtual Machines
           ip: "{{ inventory_hostname }}"
           netmask: 255.255.255.0
           device_type: vmxnet3
@@ -59,3 +80,71 @@
     register: deploy
     delegate_to: localhost
     when: not ansible_check_mode
+
+
+
+  - name: Add Static DHCP Mapping XML for VM
+    delegate_to: '192.168.7.1'
+    become: yes
+    become_user: root
+    become_method: sudo
+    become_flags: '-s'
+    xml:
+      backup: yes
+      path: /cf/conf/config.xml
+      xpath: /pfsense/dhcpd/opt2
+      pretty_print: yes
+      add_children: staticmap
+ 
+  - name: Add data to Static DHCP Mapping
+    delegate_to: '192.168.7.1'
+    become: yes
+    become_user: root
+    become_method: sudo
+    become_flags: '-s'
+    xml:
+     path: /cf/conf/config.xml
+     xpath: /pfsense/dhcpd/opt2/staticmap[last()]
+     pretty_print: yes
+     add_children:
+     - mac: "{{ deploy['instance']['hw_eth0']['macaddress'] }}"
+     - cid: "{{ scheme_name }}"
+     - ipaddr: "{{ inventory_hostname }}"
+     - hostname: "{{ scheme_name }}"
+     - descr: ""
+     - filename: ""
+     - rootpath: ""
+     - defaultleasetime: ""
+     - maxleasetime: ""
+     - gateway: ""
+     - domain: ""
+     - domainsearchlist: ""
+     - ddnsdomain: ""
+     - ddnsdomainprimary: ""
+     - ddnsdomainsecondary: ""
+     - ddnsdomainkeyname: ""
+     - ddnsdomainkeyalgorithm: "hmac-md5"
+     - ddnsdomainkey: ""
+     - tftp: ""
+     - ldap: ""
+     - nextserver: ""
+     - filename32: ""
+     - filename64: ""
+     - filename32arm: ""
+     - filename64arm: ""
+     - numberoptions: "" 
+
+  - name: Reload router config
+    delegate_to: '192.168.7.1'
+    run_once: true
+    become: yes
+    become_user: root
+    become_method: sudo
+    become_flags: '-s'
+    command: /etc/rc.reload_all
+
+
+
+
+
+
