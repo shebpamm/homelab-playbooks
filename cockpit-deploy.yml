@@ -1,0 +1,61 @@
+- name: Pull Certificates
+  hosts: router
+
+  tasks:
+  - name: Create temporary folder for certs
+    run_once: yes
+    tempfile:
+      state: directory
+      suffix: certs
+    delegate_to: localhost
+    delegate_facts: yes
+    register: cert_dir
+
+  - name: Pull Public Cert
+    fetch:
+      src: /conf/acme/sorsa-cloud-prod.crt
+      dest: "{{ cert_dir.path }}/"
+      flat: yes
+
+  - name: Pull Private Key
+    fetch:
+      src: /conf/acme/sorsa-cloud-prod.key
+      dest: "{{ cert_dir.path }}/"
+      flat: yes
+
+  - name: Store temp path
+    set_fact:
+      cert_path: "{{ cert_dir.path }}"
+    delegate_to: localhost
+    delegate_facts: yes
+
+- name: Configure Cockpit
+  hosts: virtual
+  gather_facts: no
+  become: yes
+  roles:
+    - common
+  
+  tasks:
+  - name: Install cockpit
+    ansible.builtin.package:
+      name: cockpit
+      state: present
+
+  - name: Copy Public Cert to Cockpit
+    copy:
+      src: "{{ hostvars['localhost']['cert_path'] }}/sorsa-cloud-prod.crt"
+      dest: /etc/cockpit/ws-certs.d/1-sorsa-cloud-prod.crt
+      mode: '644'
+
+  - name: Copy Private Key to Cockpit
+    copy:
+      src: "{{ hostvars['localhost']['cert_path'] }}/sorsa-cloud-prod.key"
+      dest: /etc/cockpit/ws-certs.d/1-sorsa-cloud-prod.key
+      mode: '640'
+      group: 'cockpit-ws'
+  - name: Enable Cockpit service
+    systemd:
+      name: cockpit
+      enabled: yes
+      state: restarted
