@@ -10,3 +10,18 @@
     user:
       name: ansible
       comment: Ansible Management User
+  - name: Populate Authorized Keys
+    become: yes
+    authorized_key:
+      user: ansible
+      state: present
+      key: "{{ lookup('file', '.ssh/id_ansible_ecdsa.pub') }}"
+  - name: Update sudoers.d
+    become: yes
+    copy:
+      src: ansible_sudoers
+      dest: /etc/sudoers.d/ansible_sudoers
+      owner: root
+      group: root
+      mode: ug+rwX,o=
+  
