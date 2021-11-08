@@ -1,0 +1,2 @@
+- name: Load AD admin credentials
+  include_vars: credentials.yml
