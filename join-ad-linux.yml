@@ -32,6 +32,9 @@
     file:
       path: /etc/krb5.conf.d
       state: directory
+      owner: root
+      group: root
+      mode: 755
 
   - name: Joinining the AD realm (creating AD computer account and updating /etc/krb5.keytab)
     shell: echo '{{ password }}' | adcli join --stdin-password {{ AD_Domain }} -U {{ username }} --domain-ou={{ Join_OU }}
