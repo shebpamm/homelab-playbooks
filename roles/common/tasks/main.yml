@@ -1,0 +1,7 @@
+- include_role: 
+    name: ubuntu
+  when: ansible_os_family == 'Debian'
+
+- include_role:
+    name: rhel
+  when: ansible_os_family == 'RedHat'
