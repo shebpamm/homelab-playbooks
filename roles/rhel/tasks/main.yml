@@ -1,1 +1,4 @@
 - include_vars: main.yml
+
+- include_vars: ad-packages.yml
+  when: "'active_directory' in role_names"
