@@ -28,6 +28,11 @@
       group: root
       mode: 0644
 
+  - name: Create /etc/krb5.conf.d
+    file:
+      path: /etc/krb5.conf.d
+      state: directory
+
   - name: Joinining the AD realm (creating AD computer account and updating /etc/krb5.keytab)
     shell: echo '{{ password }}' | adcli join --stdin-password {{ AD_Domain }} -U {{ username }} --domain-ou={{ Join_OU }}
 
