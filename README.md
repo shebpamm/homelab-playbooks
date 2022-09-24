@@ -1,3 +1,7 @@
+# This repository has been archived.
+I've rewritten my Ansible codebase to a more role-based approach.  
+The new repository can be found [here](https://github.com/shebpamm/homelab-fresh).
+
 # 📚 Homelab Playbooks
 ### Collection of Ansible Playbooks used with my homelab.
 
